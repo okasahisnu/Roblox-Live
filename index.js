@@ -9,14 +9,21 @@ const port = process.env.PORT || 3000; // Use the PORT environment variable or f
 
 app.use(cors());
 
-const tiktokUsername = 'noonaaigo1';
+const tiktokUsername = process.env.TIKTOK_USERNAME || 'enonoms';
 let tiktokLiveConnection = new WebcastPushConnection(tiktokUsername);
 
 // Store the events to send to Roblox
 let events = [];
 
+// Cache for profile pictures to avoid frequent requests
+let profilePicCache = {};
+
 // Function to fetch profile picture URL (web scraping example)
 async function fetchProfilePictureUrl(username) {
+    if (profilePicCache[username]) {
+        return profilePicCache[username];
+    }
+
     const profileUrl = `https://www.tiktok.com/@${username}`;
     
     try {
@@ -29,6 +36,7 @@ async function fetchProfilePictureUrl(username) {
         // Extract profile picture URL from meta tags or specific elements
         const profilePicUrl = $('meta[property="og:image"]').attr('content');
         
+        profilePicCache[username] = profilePicUrl; // Cache the URL
         return profilePicUrl;
     } catch (error) {
         console.error('Error fetching profile picture:', error);
@@ -43,11 +51,17 @@ app.get('/events', (req, res) => {
     events = [];
 });
 
-tiktokLiveConnection.connect().then(state => {
-    console.log(`Connected to ${tiktokUsername}'s live stream`);
-}).catch(err => {
-    console.error('Failed to connect', err);
-});
+// Handle connection and reconnection
+function connectToTikTokLive() {
+    tiktokLiveConnection.connect().then(state => {
+        console.log(`Connected to ${tiktokUsername}'s live stream`);
+    }).catch(err => {
+        console.error('Failed to connect', attempting to reconnect in 10 seconds...', err);
+        setTimeout(connectToTikTokLive, 10000); // Reconnect after 10 seconds
+    });
+}
+
+connectToTikTokLive();
 
 tiktokLiveConnection.on('chat', async (data) => {
     console.log(`Comment from ${data.uniqueId}: ${data.comment}`);
@@ -76,7 +90,8 @@ tiktokLiveConnection.on('gift', async (data) => {
 });
 
 tiktokLiveConnection.on('disconnected', () => {
-    console.log('Disconnected from the live stream');
+    console.log('Disconnected from the live stream, attempting to reconnect...');
+    setTimeout(connectToTikTokLive, 10000); // Reconnect after 10 seconds
 });
 
 app.listen(port, () => {
