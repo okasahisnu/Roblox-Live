@@ -5,30 +5,23 @@ const cors = require('cors');
 const { WebcastPushConnection } = require('tiktok-live-connector');
 
 const app = express();
-const port = process.env.PORT || 3000; // Use the PORT environment variable or fallback to 3000
+const port = process.env.PORT || 3000;
+const tiktokUsername = 'fahrezaos';
 
 app.use(cors());
 
-const tiktokUsername = 'dennky11';
 let tiktokLiveConnection = new WebcastPushConnection(tiktokUsername);
-
-// Store the events to send to Roblox
+let isLive = false;
 let events = [];
 
 // Function to fetch profile picture URL (web scraping example)
 async function fetchProfilePictureUrl(username) {
     const profileUrl = `https://www.tiktok.com/@${username}`;
-    
     try {
         const response = await axios.get(profileUrl);
         const html = response.data;
-        
-        // Load HTML into Cheerio
         const $ = cheerio.load(html);
-        
-        // Extract profile picture URL from meta tags or specific elements
         const profilePicUrl = $('meta[property="og:image"]').attr('content');
-        
         return profilePicUrl;
     } catch (error) {
         console.error('Error fetching profile picture:', error);
@@ -36,18 +29,50 @@ async function fetchProfilePictureUrl(username) {
     }
 }
 
+// Function to check if the stream is live
+async function isStreamLive(username) {
+    const url = `https://www.tiktok.com/@${username}/live`;
+    try {
+        const response = await axios.get(url);
+        const html = response.data;
+        const $ = cheerio.load(html);
+        const liveIndicator = $('[data-e2e="live-indicator"]').length > 0;
+        return liveIndicator;
+    } catch (error) {
+        console.error('Error checking live status:', error);
+        return false;
+    }
+}
+
 // Add a route to get events
 app.get('/events', (req, res) => {
     res.json(events);
-    // Clear the events after sending
     events = [];
 });
 
-tiktokLiveConnection.connect().then(state => {
-    console.log(`Connected to ${tiktokUsername}'s live stream`);
-}).catch(err => {
-    console.error('Failed to connect', err);
+// Add a route to get stream status
+app.get('/status', async (req, res) => {
+    isLive = await isStreamLive(tiktokUsername);
+    if (isLive) {
+        res.send('Streaming live');
+    } else {
+        res.send('Streaming offline');
+    }
 });
+
+// Connect to TikTok stream if live
+async function connectToStream() {
+    isLive = await isStreamLive(tiktokUsername);
+    if (isLive) {
+        tiktokLiveConnection.connect().then(state => {
+            console.log(`Connected to ${tiktokUsername}'s live stream`);
+        }).catch(err => {
+            console.error('Failed to connect', err);
+        });
+    } else {
+        console.log('Streaming offline');
+    }
+}
 
 tiktokLiveConnection.on('chat', async (data) => {
     console.log(`Comment from ${data.uniqueId}: ${data.comment}`);
@@ -81,4 +106,5 @@ tiktokLiveConnection.on('disconnected', () => {
 
 app.listen(port, () => {
     console.log(`Server is running on port ${port}`);
+    connectToStream();
 });
