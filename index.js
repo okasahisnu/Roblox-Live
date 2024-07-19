@@ -6,7 +6,7 @@ const { WebcastPushConnection } = require('tiktok-live-connector');
 
 const app = express();
 const port = process.env.PORT || 3000;
-const tiktokUsername = 'fahrezaos';
+const tiktokUsername = 'noonaaigo1';
 
 app.use(cors());
 
