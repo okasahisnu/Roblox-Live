@@ -25,26 +25,9 @@ async function fetchProfilePictureUrl(username) {
         
         // Load HTML into Cheerio
         const $ = cheerio.load(html);
-
-        // Debugging: Print out the first 500 characters of the HTML
-        console.log(html.substring(0, 500));
         
-        // Attempt to extract profile picture URL using different selectors
-        let profilePicUrl = $('meta[property="og:image"]').attr('content');
-
-        if (!profilePicUrl) {
-            console.log('Profile picture URL not found in meta tags. Trying alternative methods.');
-
-            // Alternative methods to find the profile picture URL
-            profilePicUrl = $('img.avatar').attr('src') || 
-                            $('img[class*="profile"]').attr('src') || 
-                            $('img[data-testid="user-avatar"]').attr('src') || 
-                            $('img[src*="profile"]').attr('src');
-
-            console.log(`Alternative URL: ${profilePicUrl}`);
-        }
-        
-        console.log(`Profile picture URL for ${username}: ${profilePicUrl}`); // Log the profile picture URL
+        // Extract profile picture URL from meta tags or specific elements
+        const profilePicUrl = $('meta[property="og:image"]').attr('content');
         
         return profilePicUrl;
     } catch (error) {
@@ -68,44 +51,28 @@ tiktokLiveConnection.connect().then(state => {
 
 tiktokLiveConnection.on('chat', async (data) => {
     console.log(`Comment from ${data.uniqueId}: ${data.comment}`);
-    try {
-        let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-        events.push({ type: 'comment', user: data.uniqueId, comment: data.comment, profilePicUrl });
-    } catch (error) {
-        console.error('Error processing chat event:', error);
-    }
+    let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
+    events.push({ type: 'comment', user: data.uniqueId, comment: data.comment, profilePicUrl });
 });
 
 tiktokLiveConnection.on('like', async (data) => {
     console.log(`${data.uniqueId} sent ${data.likeCount} likes`);
-    try {
-        let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-        events.push({ type: 'like', user: data.uniqueId, likes: data.likeCount, profilePicUrl });
-    } catch (error) {
-        console.error('Error processing like event:', error);
-    }
+    let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
+    events.push({ type: 'like', user: data.uniqueId, likes: data.likeCount, profilePicUrl });
 });
 
 tiktokLiveConnection.on('social', async (data) => {
     if (data.displayType === 'share') {
         console.log(`${data.uniqueId} shared the live stream`);
-        try {
-            let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-            events.push({ type: 'share', user: data.uniqueId, profilePicUrl });
-        } catch (error) {
-            console.error('Error processing share event:', error);
-        }
+        let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
+        events.push({ type: 'share', user: data.uniqueId, profilePicUrl });
     }
 });
 
 tiktokLiveConnection.on('gift', async (data) => {
     console.log(`${data.uniqueId} sent a gift: ${data.giftName}`);
-    try {
-        let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-        events.push({ type: 'gift', user: data.uniqueId, giftName: data.giftName, giftCount: data.repeatCount, profilePicUrl });
-    } catch (error) {
-        console.error('Error processing gift event:', error);
-    }
+    let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
+    events.push({ type: 'gift', user: data.uniqueId, giftName: data.giftName, giftCount: data.repeatCount, profilePicUrl });
 });
 
 tiktokLiveConnection.on('disconnected', () => {
