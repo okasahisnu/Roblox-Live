@@ -25,9 +25,23 @@ async function fetchProfilePictureUrl(username) {
         
         // Load HTML into Cheerio
         const $ = cheerio.load(html);
+
+        // Debugging: Print out the first 500 characters of the HTML
+        console.log(html.substring(0, 500));
         
         // Extract profile picture URL from meta tags or specific elements
         const profilePicUrl = $('meta[property="og:image"]').attr('content');
+        
+        // Debugging: Print the meta tag content
+        console.log($('meta[property="og:image"]').html());
+
+        if (!profilePicUrl) {
+            console.log('Profile picture URL not found in meta tags. Trying alternative method.');
+            // Attempt an alternative method to find the profile picture URL
+            const alternativeUrl = $('img.avatar').attr('src');
+            console.log(`Alternative URL: ${alternativeUrl}`);
+            return alternativeUrl;
+        }
         
         console.log(`Profile picture URL for ${username}: ${profilePicUrl}`); // Log the profile picture URL
         
