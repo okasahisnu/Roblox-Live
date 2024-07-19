@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000; // Use the PORT environment variable or f
 
 app.use(cors());
 
-const tiktokUsername = process.env.TIKTOK_USERNAME || 'enonoms';
+const tiktokUsername = process.env.TIKTOK_USERNAME || 'bebiyaks';
 let tiktokLiveConnection = new WebcastPushConnection(tiktokUsername);
 
 // Store the events to send to Roblox
