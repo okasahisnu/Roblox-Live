@@ -29,6 +29,8 @@ async function fetchProfilePictureUrl(username) {
         // Extract profile picture URL from meta tags or specific elements
         const profilePicUrl = $('meta[property="og:image"]').attr('content');
         
+        console.log(`Profile picture URL for ${username}: ${profilePicUrl}`); // Log the profile picture URL
+        
         return profilePicUrl;
     } catch (error) {
         console.error('Error fetching profile picture:', error);
