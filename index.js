@@ -51,28 +51,44 @@ tiktokLiveConnection.connect().then(state => {
 
 tiktokLiveConnection.on('chat', async (data) => {
     console.log(`Comment from ${data.uniqueId}: ${data.comment}`);
-    let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-    events.push({ type: 'comment', user: data.uniqueId, comment: data.comment, profilePicUrl });
+    try {
+        let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
+        events.push({ type: 'comment', user: data.uniqueId, comment: data.comment, profilePicUrl });
+    } catch (error) {
+        console.error('Error processing chat event:', error);
+    }
 });
 
 tiktokLiveConnection.on('like', async (data) => {
     console.log(`${data.uniqueId} sent ${data.likeCount} likes`);
-    let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-    events.push({ type: 'like', user: data.uniqueId, likes: data.likeCount, profilePicUrl });
+    try {
+        let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
+        events.push({ type: 'like', user: data.uniqueId, likes: data.likeCount, profilePicUrl });
+    } catch (error) {
+        console.error('Error processing like event:', error);
+    }
 });
 
 tiktokLiveConnection.on('social', async (data) => {
     if (data.displayType === 'share') {
         console.log(`${data.uniqueId} shared the live stream`);
-        let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-        events.push({ type: 'share', user: data.uniqueId, profilePicUrl });
+        try {
+            let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
+            events.push({ type: 'share', user: data.uniqueId, profilePicUrl });
+        } catch (error) {
+            console.error('Error processing share event:', error);
+        }
     }
 });
 
 tiktokLiveConnection.on('gift', async (data) => {
     console.log(`${data.uniqueId} sent a gift: ${data.giftName}`);
-    let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-    events.push({ type: 'gift', user: data.uniqueId, giftName: data.giftName, giftCount: data.repeatCount, profilePicUrl });
+    try {
+        let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
+        events.push({ type: 'gift', user: data.uniqueId, giftName: data.giftName, giftCount: data.repeatCount, profilePicUrl });
+    } catch (error) {
+        console.error('Error processing gift event:', error);
+    }
 });
 
 tiktokLiveConnection.on('disconnected', () => {
