@@ -56,7 +56,7 @@ function connectToTikTokLive() {
     tiktokLiveConnection.connect().then(state => {
         console.log(`Connected to ${tiktokUsername}'s live stream`);
     }).catch(err => {
-        console.error('Failed to connect', attempting to reconnect in 10 seconds...', err);
+        console.error('Failed to connect', 'attempting to reconnect in 10 seconds...', err);
         setTimeout(connectToTikTokLive, 10000); // Reconnect after 10 seconds
     });
 }
