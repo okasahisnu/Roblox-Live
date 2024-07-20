@@ -12,9 +12,6 @@ app.use(cors());
 const tiktokUsername = process.env.TIKTOK_USERNAME || 'boozleee';
 let tiktokLiveConnection = new WebcastPushConnection(tiktokUsername);
 
-// Store the events to send to Roblox
-let events = [];
-
 // Cache for profile pictures to avoid frequent requests
 let profilePicCache = {};
 
@@ -44,11 +41,28 @@ async function fetchProfilePictureUrl(username) {
     }
 }
 
-// Add a route to get events
-app.get('/events', (req, res) => {
-    res.json(events);
-    // Clear the events after sending
-    events = [];
+// Store events in different arrays based on type
+let comments = [];
+let likes = [];
+let gifts = [];
+
+// Add routes to get each type of event
+app.get('/comment', (req, res) => {
+    res.json(comments);
+    // Clear the comments after sending
+    comments = [];
+});
+
+app.get('/like', (req, res) => {
+    res.json(likes);
+    // Clear the likes after sending
+    likes = [];
+});
+
+app.get('/gift', (req, res) => {
+    res.json(gifts);
+    // Clear the gifts after sending
+    gifts = [];
 });
 
 // Handle connection and reconnection
@@ -66,27 +80,27 @@ connectToTikTokLive();
 tiktokLiveConnection.on('chat', async (data) => {
     console.log(`Comment from ${data.uniqueId}: ${data.comment}`);
     let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-    events.push({ type: 'comment', user: data.uniqueId, comment: data.comment, profilePicUrl });
+    comments.push({ type: 'comment', user: data.uniqueId, comment: data.comment, profilePicUrl });
 });
 
 tiktokLiveConnection.on('like', async (data) => {
     console.log(`${data.uniqueId} sent ${data.likeCount} likes`);
     let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-    events.push({ type: 'like', user: data.uniqueId, likes: data.likeCount, profilePicUrl });
+    likes.push({ type: 'like', user: data.uniqueId, likes: data.likeCount, profilePicUrl });
 });
 
 tiktokLiveConnection.on('social', async (data) => {
     if (data.displayType === 'share') {
         console.log(`${data.uniqueId} shared the live stream`);
         let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-        events.push({ type: 'share', user: data.uniqueId, profilePicUrl });
+        // You can handle shares similarly if needed
     }
 });
 
 tiktokLiveConnection.on('gift', async (data) => {
     console.log(`${data.uniqueId} sent a gift: ${data.giftName}`);
     let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-    events.push({ type: 'gift', user: data.uniqueId, giftName: data.giftName, giftCount: data.repeatCount, profilePicUrl });
+    gifts.push({ type: 'gift', user: data.uniqueId, giftName: data.giftName, giftCount: data.repeatCount, profilePicUrl });
 });
 
 tiktokLiveConnection.on('disconnected', () => {
