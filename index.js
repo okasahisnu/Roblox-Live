@@ -43,7 +43,7 @@ async function fetchProfilePictureUrl(username) {
 
 // Store events in different arrays based on type
 let comments = [];
-let likes = [];
+let likes = {};
 let gifts = [];
 
 // Add routes to get each type of event
@@ -54,9 +54,9 @@ app.get('/comment', (req, res) => {
 });
 
 app.get('/like', (req, res) => {
-    res.json(likes);
+    res.json(Object.values(likes));
     // Clear the likes after sending
-    likes = [];
+    likes = {};
 });
 
 app.get('/gift', (req, res) => {
@@ -86,7 +86,10 @@ tiktokLiveConnection.on('chat', async (data) => {
 tiktokLiveConnection.on('like', async (data) => {
     console.log(`${data.uniqueId} sent ${data.likeCount} likes`);
     let profilePicUrl = await fetchProfilePictureUrl(data.uniqueId);
-    likes.push({ type: 'like', user: data.uniqueId, likes: data.likeCount, profilePicUrl });
+    if (!likes[data.uniqueId]) {
+        likes[data.uniqueId] = { type: 'like', user: data.uniqueId, likes: 0, profilePicUrl };
+    }
+    likes[data.uniqueId].likes += data.likeCount;
 });
 
 tiktokLiveConnection.on('social', async (data) => {
