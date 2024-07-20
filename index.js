@@ -90,6 +90,9 @@ tiktokLiveConnection.on('like', async (data) => {
         likes[data.uniqueId] = { type: 'like', user: data.uniqueId, likes: 0, profilePicUrl };
     }
     likes[data.uniqueId].likes += data.likeCount;
+
+    // Log the current state of likes
+    console.log('Current likes:', likes);
 });
 
 tiktokLiveConnection.on('social', async (data) => {
