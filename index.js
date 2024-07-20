@@ -9,7 +9,7 @@ const port = process.env.PORT || 3000; // Use the PORT environment variable or f
 
 app.use(cors());
 
-const tiktokUsername = process.env.TIKTOK_USERNAME || 'tobacraps';
+const tiktokUsername = process.env.TIKTOK_USERNAME || 'fahrezaos';
 let tiktokLiveConnection = new WebcastPushConnection(tiktokUsername);
 
 // Cache for profile pictures to avoid frequent requests
